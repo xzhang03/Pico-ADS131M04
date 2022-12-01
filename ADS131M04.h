@@ -1,16 +1,21 @@
+// Raspberry pi pico library for ADS131M04
+// Modified by Stephen Zhang
+// Based on the work of Lucas Etchezuri
+
 #ifndef ADS131M04_h
 #define ADS131M04_h
 
 #include "Arduino.h"
 
-struct adcOutput
-{
+struct adcOutput{
   uint16_t status;
   int32_t ch0;
   int32_t ch1;
   int32_t ch2;
   int32_t ch3;
 };
+
+#define SPIfreq 8000000 // 8 Mhz SPI 
 
 #define DRDY_STATE_LOGIC_HIGH 0 // DEFAULS
 #define DRDY_STATE_HI_Z 1
@@ -37,7 +42,7 @@ struct adcOutput
 #define OSR_256 1
 #define OSR_512 2
 #define OSR_1024 3      // defaulT
-#define OSR_2018 4
+#define OSR_2048 4
 #define OSR_4096 5
 #define OSR_8192 6
 #define OSR_16384 7
@@ -124,7 +129,7 @@ struct adcOutput
 #define REGMASK_MODE_RX_CRC_EN 0x1000
 #define REGMASK_MODE_CRC_TYPE 0x0800
 #define REGMASK_MODE_RESET 0x0400
-#define REGMASK_MODE_WLENGTH 0x0300bool ADS131M04::setChannelPGA(uint8_t channel, uint8_t pga)
+#define REGMASK_MODE_WLENGTH 0x0300
 #define REGMASK_MODE_TIMEOUT 0x0010
 #define REGMASK_MODE_DRDY_SEL 0x000C
 #define REGMASK_MODE_DRDY_HiZ 0x0002
@@ -234,8 +239,7 @@ struct adcOutput
 #define SPI_MASTER_DUMMY16 0xFFFF
 #define SPI_MASTER_DUMMY32 0xFFFFFFFF
 
-class ADS131M04
-{
+class ADS131M04{
 public:
   ADS131M04();
   uint8_t ADS131M04_CS_PIN;
@@ -243,8 +247,10 @@ public:
   uint8_t ADS131M04_CLK_PIN;
   uint8_t ADS131M04_MISO_PIN;
   uint8_t ADS131M04_MOSI_PIN;
-
-  void begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin);
+  uint8_t ADS131M04_RESET_PIN;
+  adcOutput readADC(void);
+    
+  void begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t reset_pin);
   int8_t isDataReadySoft(byte channel);
   bool isDataReady(void);
   bool isResetStatus(void);
@@ -260,11 +266,14 @@ public:
   bool setChannelOffsetCalibration(uint8_t channel, int32_t offset);
   bool setChannelGainCalibration(uint8_t channel, uint32_t gain);
   bool setOsr(uint16_t osr);
-  adcOutput readADC(void);
-
+  uint16_t readRegister(uint8_t address);
+  void reset(void);
+  bool command(uint16_t cmd);
+  float convert(int32_t datain);
+  
 private:
   uint8_t writeRegister(uint8_t address, uint16_t value);
   void writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask);
-  uint16_t readRegister(uint8_t address);
+  int32_t twoscom(int32_t datain);
 };
 #endif

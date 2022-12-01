@@ -1,15 +1,17 @@
+// Raspberry pi pico library for ADS131M04
+// Modified by Stephen Zhang
+// Based on the work of Lucas Etchezuri
+
 #include "Arduino.h"
 #include "ADS131M04.h"
 #include "SPI.h"
 
-#define settings SPISettings(4000000, MSBFIRST, SPI_MODE1)
+#define settings SPISettings(SPIfreq, MSBFIRST, SPI_MODE1)
 
-ADS131M04::ADS131M04()
-{
+ADS131M04::ADS131M04(){
 }
 
-uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
-{
+uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value){
   uint16_t res;
   uint8_t addressRcv;
   uint8_t bytesRcv;
@@ -70,8 +72,7 @@ uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
   return 0;
 }
 
-void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
-{
+void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask){
   // Escribe un valor en el registro, aplicando la mascara para tocar unicamente los bits necesarios.
   // No realiza el corrimiento de bits (shift), hay que pasarle ya el valor corrido a la posicion correcta
 
@@ -89,8 +90,35 @@ void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t ma
   writeRegister(address, register_contents);
 }
 
-uint16_t ADS131M04::readRegister(uint8_t address)
-{
+bool ADS131M04::command(uint16_t cmd){
+  // Issue command (6 word frame)
+  digitalWrite(ADS131M04_CS_PIN, LOW);
+  delayMicroseconds(1);
+  SPI.transfer16(cmd);
+  SPI.transfer(0x00);
+
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
+
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
+
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
+
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
+
+  SPI.transfer16(0x0000);
+  SPI.transfer(0x00);
+
+  delayMicroseconds(1);
+  digitalWrite(ADS131M04_CS_PIN, HIGH);
+  return true;
+  
+}
+
+uint16_t ADS131M04::readRegister(uint8_t address){
   uint16_t cmd;
   uint16_t data;
 
@@ -141,25 +169,39 @@ uint16_t ADS131M04::readRegister(uint8_t address)
   return data;
 }
 
-void ADS131M04::begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin)
-{
+void ADS131M04::begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t reset_pin){
   // Set pins up
   ADS131M04_CS_PIN = cs_pin;
   ADS131M04_DRDY_PIN = drdy_pin;
   ADS131M04_CLK_PIN = clk_pin;
   ADS131M04_MISO_PIN = miso_pin;
   ADS131M04_MOSI_PIN = mosi_pin;
+  ADS131M04_RESET_PIN = reset_pin;
 
-  SPI.begin(ADS131M04_CLK_PIN, ADS131M04_MISO_PIN, ADS131M04_MOSI_PIN);
+  // How Pico sets SPI pins (** To be added for other boards in the future **)
+  #ifdef ARDUINO_ARCH_RP204
+    SPI.setRX(ADS131M04_MISO_PIN);
+    SPI.setCS(ADS131M04_CS_PIN);
+    SPI.setSCK(ADS131M04_CLK_PIN);
+    SPI.setTX(ADS131M04_MOSI_PIN);
+  #endif
+  SPI.begin();
+
   SPI.beginTransaction(settings);
   // Configure chip select as an output
   pinMode(ADS131M04_CS_PIN, OUTPUT);
   // Configure DRDY as as input
   pinMode(ADS131M04_DRDY_PIN, INPUT);
+
+  // Configure reset as output
+  pinMode(ADS131M04_RESET_PIN, OUTPUT);
+  digitalWrite(ADS131M04_RESET_PIN, HIGH);
+
+  reset();
 }
 
-int8_t ADS131M04::isDataReadySoft(byte channel)
-{
+// Get data reset from STATUS register
+int8_t ADS131M04::isDataReadySoft(byte channel){
   if (channel == 0)
   {
     return (readRegister(REG_STATUS) & REGMASK_STATUS_DRDY0);
@@ -182,18 +224,15 @@ int8_t ADS131M04::isDataReadySoft(byte channel)
   }
 }
 
-bool ADS131M04::isResetStatus(void)
-{
+bool ADS131M04::isResetStatus(void){
   return (readRegister(REG_STATUS) & REGMASK_STATUS_RESET);
 }
 
-bool ADS131M04::isLockSPI(void)
-{
+bool ADS131M04::isLockSPI(void){
   return (readRegister(REG_STATUS) & REGMASK_STATUS_LOCK);
 }
 
-bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
-{
+bool ADS131M04::setDrdyFormat(uint8_t drdyFormat){
   if (drdyFormat > 1)
   {
     return false;
@@ -205,8 +244,7 @@ bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
   }
 }
 
-bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
-{
+bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState){
   if (drdyState > 1)
   {
     return false;
@@ -218,8 +256,7 @@ bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
   }
 }
 
-bool ADS131M04::setPowerMode(uint8_t powerMode)
-{
+bool ADS131M04::setPowerMode(uint8_t powerMode){
   if (powerMode > 3)
   {
     return false;
@@ -231,8 +268,7 @@ bool ADS131M04::setPowerMode(uint8_t powerMode)
   }
 }
 
-bool ADS131M04::setOsr(uint16_t osr)
-{
+bool ADS131M04::setOsr(uint16_t osr){
   if (osr > 7)
   {
     return false;
@@ -244,60 +280,65 @@ bool ADS131M04::setOsr(uint16_t osr)
   }
 }
 
-bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
-{
+bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable){
+  bool returnval = false;
+  
   if (channel > 3)
   {
-    return false;
+    returnval = false;
   }
   if (channel == 0)
   {
     writeRegisterMasked(REG_CLOCK, enable << 8, REGMASK_CLOCK_CH0_EN);
-    return true;
+    returnval = true;
   }
   else if (channel == 1)
   {
     writeRegisterMasked(REG_CLOCK, enable << 9, REGMASK_CLOCK_CH1_EN);
-    return true;
+    returnval = true;
   }
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CLOCK, enable << 10, REGMASK_CLOCK_CH2_EN);
-    return true;
+    returnval = true;
   }
   else if (channel == 3)
   {
     writeRegisterMasked(REG_CLOCK, enable << 11, REGMASK_CLOCK_CH3_EN);
-    return true;
+    returnval = true;
   }
+  return returnval;
 }
 
-bool ADS131M04::setChannelPGA(uint8_t channel, uint16_t pga)
-{
+bool ADS131M04::setChannelPGA(uint8_t channel, uint16_t pga){
+  bool returnval = false;
+  
   if (channel > 3)
   {
-    return false;
+    returnval = false;
   }
   if (channel == 0)
   {
     writeRegisterMasked(REG_GAIN, pga, REGMASK_GAIN_PGAGAIN0);
-    return true;
+    returnval = true;
   }
   else if (channel == 1)
   {
     writeRegisterMasked(REG_GAIN, pga << 4, REGMASK_GAIN_PGAGAIN1);
-    return true;
+    returnval = true;
   }
   else if (channel == 2)
   {
     writeRegisterMasked(REG_GAIN, pga << 8, REGMASK_GAIN_PGAGAIN2);
-    return true;
+    returnval = true;
   }
   else if (channel == 3)
   {
     writeRegisterMasked(REG_GAIN, pga << 12, REGMASK_GAIN_PGAGAIN3);
-    return true;
+    returnval = true;
   }
+
+  return returnval;
 }
 
 void ADS131M04::setGlobalChop(uint16_t global_chop)
@@ -310,108 +351,114 @@ void ADS131M04::setGlobalChopDelay(uint16_t delay)
   writeRegisterMasked(REG_CFG, delay << 9, REGMASK_CFG_GC_DLY);
 }
 
-bool ADS131M04::setInputChannelSelection(uint8_t channel, uint8_t input)
-{
+bool ADS131M04::setInputChannelSelection(uint8_t channel, uint8_t input){
+  bool returnval = false;
+  
   if (channel > 3)
   {
-    return false;
+    returnval = false;
   }
   if (channel == 0)
   {
     writeRegisterMasked(REG_CH0_CFG, input, REGMASK_CHX_CFG_MUX);
-    return true;
+    returnval = true;
   }
   else if (channel == 1)
   {
     writeRegisterMasked(REG_CH1_CFG, input, REGMASK_CHX_CFG_MUX);
-    return true;
+    returnval = true;
   }
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_CFG, input, REGMASK_CHX_CFG_MUX);
-    return true;
+    returnval = true;
   }
   else if (channel == 3)
   {
     writeRegisterMasked(REG_CH3_CFG, input, REGMASK_CHX_CFG_MUX);
-    return true;
+    returnval = true;
   }
+
+  return returnval;
 }
 
-bool ADS131M04::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
-{
+bool ADS131M04::setChannelOffsetCalibration(uint8_t channel, int32_t offset){
 
   uint16_t MSB = offset >> 8;
   uint8_t LSB = offset;
-
+  bool returnval = false;
+  
   if (channel > 3)
   {
-    return false;
+    returnval = false;
   }
   if (channel == 0)
   {
     writeRegisterMasked(REG_CH0_OCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH0_OCAL_LSB, LSB << 8, REGMASK_CHX_OCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 1)
   {
     writeRegisterMasked(REG_CH1_OCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH1_OCAL_LSB, LSB << 8, REGMASK_CHX_OCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_OCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH2_OCAL_LSB, LSB << 8, REGMASK_CHX_OCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 3)
   {
     writeRegisterMasked(REG_CH3_OCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH3_OCAL_LSB, LSB << 8 , REGMASK_CHX_OCAL0_LSB);
-    return true;
+    returnval = true;
   }
+  return returnval;
 }
 
-bool ADS131M04::setChannelGainCalibration(uint8_t channel, uint32_t gain)
-{
+bool ADS131M04::setChannelGainCalibration(uint8_t channel, uint32_t gain){
 
   uint16_t MSB = gain >> 8;
   uint8_t LSB = gain;
-
+  bool returnval = false;
+  
   if (channel > 3)
   {
-    return false;
+    returnval = false;
   }
   if (channel == 0)
   {
     writeRegisterMasked(REG_CH0_GCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH0_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 1)
   {
     writeRegisterMasked(REG_CH1_GCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH1_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 2)
   {
     writeRegisterMasked(REG_CH2_GCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH2_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
-    return true;
+    returnval = true;
   }
   else if (channel == 3)
   {
     writeRegisterMasked(REG_CH3_GCAL_MSB, MSB, 0xFFFF);
     writeRegisterMasked(REG_CH3_GCAL_LSB, LSB << 8, REGMASK_CHX_GCAL0_LSB);
-    return true;
+    returnval = true;
   }
+
+  return returnval; // ** "control reaches end of non-void function"
 }
 
-bool ADS131M04::isDataReady()
-{
+// non-interrrupt isDataReady implementation
+bool ADS131M04::isDataReady(){
   if (digitalRead(ADS131M04_DRDY_PIN) == HIGH)
   {
     return false;
@@ -419,8 +466,20 @@ bool ADS131M04::isDataReady()
   return true;
 }
 
-adcOutput ADS131M04::readADC(void)
-{
+// Fast two's complement
+int32_t ADS131M04::twoscom(int32_t datain){
+  int32_t dataout;
+  
+  if (bitRead(datain, 23) == 1){
+    dataout = datain - 16777216;
+  }
+  else{
+    dataout = datain;
+  }
+  return dataout;
+}
+
+adcOutput ADS131M04::readADC(void){
   uint8_t x = 0;
   uint8_t x2 = 0;
   uint8_t x3 = 0;
@@ -441,56 +500,34 @@ adcOutput ADS131M04::readADC(void)
   x3 = SPI.transfer(0x00);
 
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
-  if (aux > 0x7FFFFF)
-  {
-    res.ch0 = ((~(aux)&0x00FFFFFF) + 1) * -1;
-  }
-  else
-  {
-    res.ch0 = aux;
-  }
+  aux = twoscom(aux);
+  res.ch0 = aux;
 
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
   x3 = SPI.transfer(0x00);
 
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
-  if (aux > 0x7FFFFF)
-  {
-    res.ch1 = ((~(aux)&0x00FFFFFF) + 1) * -1;
-  }
-  else
-  {
-    res.ch1 = aux;
-  }
+  aux = twoscom(aux);
+  res.ch1 = aux;
 
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
   x3 = SPI.transfer(0x00);
 
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
-  if (aux > 0x7FFFFF)
-  {
-    res.ch2 = ((~(aux)&0x00FFFFFF) + 1) * -1;
-  }
-  else
-  {
-    res.ch2 = aux;
-  }
+  aux = twoscom(aux);
+  res.ch2 = aux;
 
   x = SPI.transfer(0x00);
   x2 = SPI.transfer(0x00);
   x3 = SPI.transfer(0x00);
 
   aux = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
-  if (aux > 0x7FFFFF)
-  {
-    res.ch3 = ((~(aux)&0x00FFFFFF) + 1) * -1;
-  }
-  else
-  {
-    res.ch3 = aux;
-  }
+  aux = twoscom(aux);
+  res.ch3 = aux;
+
+  // CRC
   SPI.transfer(0x00);
   SPI.transfer(0x00);
   SPI.transfer(0x00);
@@ -499,4 +536,19 @@ adcOutput ADS131M04::readADC(void)
   digitalWrite(ADS131M04_CS_PIN, HIGH);
 
   return res;
+}
+
+// Hard reset through reset pin
+void ADS131M04::reset(void){
+  digitalWrite(ADS131M04_RESET_PIN, LOW);
+  delay(10);
+  digitalWrite(ADS131M04_RESET_PIN, HIGH);
+  delay(10);
+}
+
+// Convert to voltage
+float ADS131M04::convert(int32_t datain){
+  float volt;
+  volt = datain * 1.2 / 8388608; // Voltage reference  is 1.2V
+  return volt;
 }

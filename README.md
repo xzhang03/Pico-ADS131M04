@@ -30,7 +30,7 @@ SIT2024BM-S3-33N-8.192000 is a 8.192 MHz oscillator with 3.3V logic voltage. In 
 | 3.3 V (Out) | - | OE 3 |
 | - | CLKIN 17 | OUT 5 |
 
-> Capacitors between positive and negative rails because pico's switching mode voltage regulator is known to be noisy (and so is the internal ADC). 
+> Capacitors are placed between positive and negative rails because pico's switched-mode voltage regulator is known to be noisy (and so is the internal ADC). 
 
 ## Function list
 ### Common functions
