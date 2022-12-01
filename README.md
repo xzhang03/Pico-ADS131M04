@@ -1,6 +1,6 @@
 # Pico-ADS131M04
 
-A library for ADS131M04 analog digital converter, built upon [Lucas Etchezuri's work](https://github.com/LucasEtchezuri/Arduino-ADS131M04) on the Arduino version (see link below). This fork works with raspberry pi pico and has some additional functionalities and minor bug fixes. 
+A library for ADS131M04 analog digital converter, built upon [Lucas Etchezuri's work](https://github.com/LucasEtchezuri/Arduino-ADS131M04) on the Arduino version. This fork works with raspberry pi pico and has some additional functionalities and minor bug fixes. 
 
 ## ADS131M04
 ADS131M04 is a 24 bit ADC that transmits data over SPI. The main advantage of ADS131M04 over other older ADCs are: 1) ADS131M04 uses simultaneous sampling of 4 input channels and therefore avoids MUX-related data-rate loss (e.g., as in ADS1256), 2)ADS131M04 supports higher speed SPI (max 15.625 MHz per datasheet), 3) it has 24 bit read depth, 4) it has a max sampling rate of 32KSPS for all 4 channels, 5) it is available as of 12/2022. The max voltage input swing of ADS131M04 is +/- 1.2V.
