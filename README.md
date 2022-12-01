@@ -34,115 +34,115 @@ SIT2024BM-S3-33N-8.192000 is a 8.192 MHz oscillator with 3.3V logic voltage. In 
 
 ## Function list
 ### Common functions
-1. [Modified] Initializing ADC.
-```
+1. Initializing ADC [Modified]
+```C
 void ADS131M04::begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t reset_pin)
 ```
 
-2. [Etchezuri] Set sampling rate (default 2K SPS, max 32 SPS)
-```
+2. Set sampling rate (default 2K SPS, max 32 SPS) [Etchezuri]
+```C
 bool ADS131M04::setOsr(uint16_t osr)
 ```
 
-3. [Etchezuri] Channel gain (default 1, max 128)
-```
+3. Channel gain (default 1, max 128) [Etchezuri]
+```C
 bool ADS131M04::setChannelPGA(uint8_t channel, uint16_t pga)
 ```
 
-4. [Etchezuri] Input MUX selection (default differential pairs)
-```
+4. Input MUX selection (default differential pairs) [Etchezuri]
+```C
 bool ADS131M04::setInputChannelSelection(uint8_t channel, uint8_t input)
 ```
 
-5. [Etchezuri] Offset calibration per channel (see datasheet)
-```
+5. Offset calibration per channel (see datasheet) [Etchezuri]
+```C
 bool ADS131M04::setChannelOffsetCalibration(uint8_t channel, int32_t offset)
 ```
 
-6. [Etchezuri] Gain calibration per channel (see datasheet)
-```
+6. Gain calibration per channel (see datasheet) [Etchezuri]
+```C
 bool ADS131M04::setChannelGainCalibration(uint8_t channel, uint32_t gain)
 ```
 
-7. [Etchezuri] Non-interrupt read of data ready (see testPanel for implementing an interrupt-based method)
-```
+7. Non-interrupt read of data ready (see testPanel for implementing an interrupt-based method) [Etchezuri]
+```C
 bool ADS131M04::isDataReady()
 ```
 
-8. [Modified] Reading adc (see testPanel for data formats)
-```
+8. Reading adc (see testPanel for data formats) [Modified]
+```C
 adcOutput ADS131M04::readADC(void)
 ```
 
-9. [New] A fast two's complement implementation
-```
+9. A fast two's complement implementation [New]
+```C
 int32_t ADS131M04::twoscom(int32_t datain)
 ```
 
-10. [New] Converting int32 data to floating voltage
-```
+10. Converting int32 data to floating voltage (assuming gain = 1) [New]
+```C
 float ADS131M04::convert(int32_t datain)
 ```
 
-11. [New] Issue a command to ADS131M04
-```
+11. Issue a command to ADS131M04 [New]
+```C
 bool ADS131M04::command(uint16_t cmd)
 ```
 
-12. [Etchezuri] read register (16 bits per register address).
-```
+12. Read register (16 bits per register address) [Etchezuri]
+```C
 uint16_t ADS131M04::readRegister(uint8_t address)
 ```
 
-13. [New] Reset ADC (lose all regsiter writes)
-```
+13. Reset ADC (lose all regsiter writes) [New]
+```C
 void ADS131M04::reset(void)
 ```
 
 ### Uncommon functions
-14. [Etchezuri] Write ADC register (6 word per frame and default 24 bits per word).
-```
+14. Write ADC register (6 word per frame and default 24 bits per word) [Etchezuri]
+```C
 uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
 ```
 
-15. [Etchezuri] A wrapper function for register writing.
-```
+15. A wrapper function for register writing [Etchezuri]
+```C
 void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
 ```
 
-16. [Etchezuri] Get data ready from STATUS register
-```
+16. Get data ready from STATUS register [Etchezuri]
+```C
 int8_t ADS131M04::isDataReadySoft(byte channel)
 ```
 
-17. [Etchezuri] Check reset status
-```
+17. Check reset status [Etchezuri]
+```C
 bool ADS131M04::isResetStatus(void)
 ```
 
-18. [Etchezuri] Check SPI lock (see datasheet)
-```
+18. Check SPI lock (see datasheet) [Etchezuri]
+```C
 bool ADS131M04::isLockSPI(void)
 ```
       
-19. [Etchezuri] Set data ready format (see datasheet)
-```
+19. Set data ready format (see datasheet) [Etchezuri]
+```C
 bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
 bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
 ```
 
-20. [Etchezuri] Set power mode (see datasheet for corresponding sampling and clock rates)
-```
+20. Set power mode (see datasheet for corresponding sampling and clock rates) [Etchezuri]
+```C
 bool ADS131M04::setPowerMode(uint8_t powerMode)
 ```
 
-21. [Etchezuri] Enable/disble channels
-```
+21. Enable/disble channels [Etchezuri]
+```C
 bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
 ```
 
-22. [Etchezuri] Global chops (see datasheet)
-```
+22. Global chops (see datasheet) [Etchezuri]
+```C
 void ADS131M04::setGlobalChop(uint16_t global_chop)
 ```
 
