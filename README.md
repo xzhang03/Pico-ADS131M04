@@ -6,7 +6,7 @@ A library for ADS131M04 analog digital converter, built upon [Lucas Etchezuri's 
 ADS131M04 is a 24 bit ADC that transmits data over SPI. The main advantage of ADS131M04 over other older ADCs are: 1) ADS131M04 uses simultaneous sampling of 4 input channels and therefore avoids MUX-related data-rate loss (e.g., as in ADS1256), 2)ADS131M04 supports higher speed SPI (max 15.625 MHz per datasheet), 3) it has 24 bit read depth, 4) it has a max sampling rate of 32KSPS for all 4 channels, 5) it is available as of 12/2022. The max voltage input swing of ADS131M04 is +/- 1.2V.
 
 ## Clock module
-SIT2024BM-S3-33N-8.192000 is a 8.192 MHz oscillator with 3.3V logic voltage. In practice any 8.192 MHz MEMS oscillator (XO standard type) should work.
+SIT2024BM-S3-33N-8.192000 is a 8.192 MHz oscillator with 3.3V logic voltage. In practice any 8.192 MHz MEMS oscillator (XO standard type) should work. Clock frequencies can be halved twice with D Flip Flops.
 
 ## PINOUT
 #### Main module
