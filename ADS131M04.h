@@ -38,14 +38,14 @@ struct adcOutput{
 #define INPUT_CHANNEL_MUX_POSITIVE_DC_TEST_SIGNAL 2
 #define INPUT_CHANNEL_MUX_NEGATIVE_DC_TEST_SIGNAL 3
 
-#define OSR_128 0
-#define OSR_256 1
-#define OSR_512 2
-#define OSR_1024 3      // defaulT
-#define OSR_2048 4
-#define OSR_4096 5
-#define OSR_8192 6
-#define OSR_16384 7
+#define OSR_128 0    // 32 kSPS
+#define OSR_256 1    // 16 kSPS
+#define OSR_512 2    // 8 kSPS
+#define OSR_1024 3   // 4 kSPS defaulT
+#define OSR_2048 4   // 2 kSPS
+#define OSR_4096 5   // 1k kSPS
+#define OSR_8192 6   // 500 SPS
+#define OSR_16384 7  // 250 SPS
 
 
 // Commands
