@@ -74,74 +74,89 @@ bool ADS131M04::isDataReady()
 adcOutput ADS131M04::readADC(void)
 ```
 
-9. A fast two's complement implementation [New]
+9. Reading adc and keeping data in 24-bit two's complement form [Modified]
+```C
+adcOutput ADS131M04::readADCraw(void)
+```
+
+10. A fast two's complement implementation (from int24 to int32) [New]
 ```C
 int32_t ADS131M04::twoscom(int32_t datain)
 ```
 
-10. Converting int32 data to floating voltage (assuming gain = 1) [New]
+11. Reverse two's complement (from int32 to int24) [New]
+```C
+int32_t ADS131M04::revtwoscom(int32_t datain)
+```
+
+12. Converting int32 data to floating voltage (assuming gain = 1) [New]
 ```C
 float ADS131M04::convert(int32_t datain)
 ```
 
-11. Issue a command to ADS131M04 [New]
+13. Converting floating voltage to int32 data (assuming gain = 1) [New]
+```C
+float ADS131M04::revconvert(int32_t datain)
+```
+
+14. Issue a command to ADS131M04 [New]
 ```C
 bool ADS131M04::command(uint16_t cmd)
 ```
 
-12. Read register (16 bits per register address) [Etchezuri]
+15. Read register (16 bits per register address) [Etchezuri]
 ```C
 uint16_t ADS131M04::readRegister(uint8_t address)
 ```
 
-13. Reset ADC (lose all regsiter writes) [New]
+16. Reset ADC (lose all regsiter writes) [New]
 ```C
 void ADS131M04::reset(void)
 ```
 
 ### Uncommon functions
-14. Write ADC register (6 word per frame and default 24 bits per word) [Etchezuri]
+17. Write ADC register (6 word per frame and default 24 bits per word) [Etchezuri]
 ```C
 uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
 ```
 
-15. A wrapper function for register writing [Etchezuri]
+18. A wrapper function for register writing [Etchezuri]
 ```C
 void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
 ```
 
-16. Get data ready from STATUS register [Etchezuri]
+19. Get data ready from STATUS register [Etchezuri]
 ```C
 int8_t ADS131M04::isDataReadySoft(byte channel)
 ```
 
-17. Check reset status [Etchezuri]
+20. Check reset status [Etchezuri]
 ```C
 bool ADS131M04::isResetStatus(void)
 ```
 
-18. Check SPI lock (see datasheet) [Etchezuri]
+21. Check SPI lock (see datasheet) [Etchezuri]
 ```C
 bool ADS131M04::isLockSPI(void)
 ```
       
-19. Set data ready format (see datasheet) [Etchezuri]
+22. Set data ready format (see datasheet) [Etchezuri]
 ```C
 bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
 bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
 ```
 
-20. Set power mode (see datasheet for corresponding sampling and clock rates) [Etchezuri]
+23. Set power mode (see datasheet for corresponding sampling and clock rates) [Etchezuri]
 ```C
 bool ADS131M04::setPowerMode(uint8_t powerMode)
 ```
 
-21. Enable/disble channels [Etchezuri]
+24. Enable/disble channels [Etchezuri]
 ```C
 bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
 ```
 
-22. Global chops (see datasheet) [Etchezuri]
+25. Global chops (see datasheet) [Etchezuri]
 ```C
 void ADS131M04::setGlobalChop(uint16_t global_chop)
 ```
