@@ -96,7 +96,7 @@ float ADS131M04::convert(int32_t datain)
 
 13. Converting floating voltage to int32 data (assuming gain = 1) [New]
 ```C
-float ADS131M04::revconvert(int32_t datain)
+int32_t revconvert(float datain);
 ```
 
 14. Issue a command to ADS131M04 [New]
