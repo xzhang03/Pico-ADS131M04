@@ -479,6 +479,12 @@ int32_t ADS131M04::twoscom(int32_t datain){
   return dataout;
 }
 
+// Convert signed 32-bit values to 24-bit two's complement
+int32_t ADS131M04::revtwoscom(int32_t datain){
+  int32_t dataout = datain & 0xFFFFFF;;
+  return dataout;
+}
+
 adcOutput ADS131M04::readADC(void){
   uint8_t x = 0;
   uint8_t x2 = 0;
@@ -538,6 +544,56 @@ adcOutput ADS131M04::readADC(void){
   return res;
 }
 
+adcOutputraw ADS131M04::readADCraw(void){
+  uint8_t x = 0;
+  uint8_t x2 = 0;
+  uint8_t x3 = 0;
+  adcOutputraw res;
+
+  digitalWrite(ADS131M04_CS_PIN, LOW);
+  delayMicroseconds(1);
+
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  SPI.transfer(0x00);
+
+  res.status = ((x << 8) | x2);
+
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
+
+  res.ch0 = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
+
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
+
+  res.ch1 = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
+
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
+
+  res.ch2 = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
+
+  x = SPI.transfer(0x00);
+  x2 = SPI.transfer(0x00);
+  x3 = SPI.transfer(0x00);
+
+  res.ch3 = (((x << 16) | (x2 << 8) | x3) & 0x00FFFFFF);
+
+  // CRC
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
+  SPI.transfer(0x00);
+
+  delayMicroseconds(1);
+  digitalWrite(ADS131M04_CS_PIN, HIGH);
+
+  return res;
+}
+
 // Hard reset through reset pin
 void ADS131M04::reset(void){
   digitalWrite(ADS131M04_RESET_PIN, LOW);
@@ -551,4 +607,11 @@ float ADS131M04::convert(int32_t datain){
   float volt;
   volt = datain * 1.2 / 8388608; // Voltage reference  is 1.2V
   return volt;
+}
+
+// Revert convert from voltage
+int32_t ADS131M04::revconvert(float datain){
+  float out;
+  out = datain * 8388608 / 1.2; // Voltage reference  is 1.2V
+  return out;
 }

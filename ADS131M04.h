@@ -7,12 +7,20 @@
 
 #include "Arduino.h"
 
-struct adcOutput{
+struct adcOutput{ // ADC output converted from two's complement
   uint16_t status;
   int32_t ch0;
   int32_t ch1;
   int32_t ch2;
   int32_t ch3;
+};
+
+struct adcOutputraw{ // ADC output in two's complement
+  uint16_t status;
+  uint32_t ch0;
+  uint32_t ch1;
+  uint32_t ch2;
+  uint32_t ch3;
 };
 
 #define SPIfreq 8000000 // 8 Mhz SPI 
@@ -249,6 +257,7 @@ public:
   uint8_t ADS131M04_MOSI_PIN;
   uint8_t ADS131M04_RESET_PIN;
   adcOutput readADC(void);
+  adcOutputraw readADCraw(void);
     
   void begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t reset_pin);
   int8_t isDataReadySoft(byte channel);
@@ -270,10 +279,12 @@ public:
   void reset(void);
   bool command(uint16_t cmd);
   float convert(int32_t datain);
+  int32_t revconvert(float datain);
+  int32_t twoscom(int32_t datain);
+  int32_t revtwoscom(int32_t datain);
   
 private:
   uint8_t writeRegister(uint8_t address, uint16_t value);
   void writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask);
-  int32_t twoscom(int32_t datain);
 };
 #endif
