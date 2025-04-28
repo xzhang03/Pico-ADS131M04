@@ -263,7 +263,9 @@ public:
   adcOutput readADC(void);
   adcOutputraw readADCraw(void);
   adcOutput readCh0(void);
+  adcOutputraw readCh0raw(void);
   adcOutput readCh01(void);
+  adcOutputraw readCh01raw(void);
     
   void begin(uint8_t clk_pin, uint8_t miso_pin, uint8_t mosi_pin, uint8_t cs_pin, uint8_t drdy_pin, uint8_t reset_pin);
   int8_t isDataReadySoft(byte channel);

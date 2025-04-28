@@ -74,89 +74,115 @@ bool ADS131M04::isDataReady()
 adcOutput ADS131M04::readADC(void)
 ```
 
-9. Reading adc and keeping data in 24-bit two's complement form [Modified]
+9. Reading adc channel 0 (see testPanel for data formats) [Modified]
 ```C
-adcOutput ADS131M04::readADCraw(void)
+adcOutput ADS131M04::readCh0(void)
 ```
 
-10. A fast two's complement implementation (from int24 to int32) [New]
+10. Reading adc channels 0 and 1 (see testPanel for data formats) [Modified]
+```C
+adcOutput ADS131M04::readCh01(void)
+```
+
+11. Reading adc and keeping data in 24-bit two's complement form [Modified]
+```C
+adcOutputraw ADS131M04::readADCraw(void)
+```
+
+12. Reading adc channel 0 and keeping data in 24-bit two's complement form (see testPanel for data formats) [Modified]
+```C
+adcOutputraw ADS131M04::readCh0raw(void)
+```
+
+13. Reading adc channels 0 and 1 and keeping data in 24-bit two's complement form (see testPanel for data formats) [Modified]
+```C
+adcOutputraw ADS131M04::readCh01raw(void)
+```
+
+14. A fast two's complement implementation (from int24 to int32) [New]
 ```C
 int32_t ADS131M04::twoscom(int32_t datain)
 ```
 
-11. Reverse two's complement (from int32 to int24) [New]
+15. Reverse two's complement (from int32 to int24) [New]
 ```C
 int32_t ADS131M04::revtwoscom(int32_t datain)
 ```
 
-12. Converting int32 data to floating voltage (assuming gain = 1) [New]
+16. Converting int32 data to floating voltage (assuming gain = 1) [New]
 ```C
 float ADS131M04::convert(int32_t datain)
 ```
 
-13. Converting floating voltage to int32 data (assuming gain = 1) [New]
+17. Converting floating voltage to int32 data (assuming gain = 1) [New]
 ```C
 int32_t revconvert(float datain);
 ```
 
-14. Issue a command to ADS131M04 [New]
+18. Issue a command to ADS131M04 [New]
 ```C
 bool ADS131M04::command(uint16_t cmd)
 ```
 
-15. Read register (16 bits per register address) [Etchezuri]
+19. Read register (16 bits per register address) [Etchezuri]
 ```C
 uint16_t ADS131M04::readRegister(uint8_t address)
 ```
 
-16. Reset ADC (lose all regsiter writes) [New]
+20. Reset ADC (lose all regsiter writes) [New]
 ```C
 void ADS131M04::reset(void)
 ```
 
 ### Uncommon functions
-17. Write ADC register (6 word per frame and default 24 bits per word) [Etchezuri]
+21. Write ADC register (6 word per frame and default 24 bits per word) [Etchezuri]
 ```C
 uint8_t ADS131M04::writeRegister(uint8_t address, uint16_t value)
 ```
 
-18. A wrapper function for register writing [Etchezuri]
+22. A wrapper function for register writing [Etchezuri]
 ```C
 void ADS131M04::writeRegisterMasked(uint8_t address, uint16_t value, uint16_t mask)
 ```
 
-19. Get data ready from STATUS register [Etchezuri]
+23. Get data ready from STATUS register [Etchezuri]
 ```C
 int8_t ADS131M04::isDataReadySoft(byte channel)
 ```
 
-20. Check reset status [Etchezuri]
+24. Check reset status [Etchezuri]
 ```C
 bool ADS131M04::isResetStatus(void)
 ```
 
-21. Check SPI lock (see datasheet) [Etchezuri]
+25. Check SPI lock (see datasheet) [Etchezuri]
 ```C
 bool ADS131M04::isLockSPI(void)
 ```
       
-22. Set data ready format (see datasheet) [Etchezuri]
+26. Set data ready format (see datasheet) [Etchezuri]
 ```C
 bool ADS131M04::setDrdyFormat(uint8_t drdyFormat)
 bool ADS131M04::setDrdyStateWhenUnavailable(uint8_t drdyState)
 ```
 
-23. Set power mode (see datasheet for corresponding sampling and clock rates) [Etchezuri]
+27. Set power mode (see datasheet for corresponding sampling and clock rates) [Etchezuri]
 ```C
 bool ADS131M04::setPowerMode(uint8_t powerMode)
 ```
 
-24. Enable/disble channels [Etchezuri]
+28. Set word length [New]
+```C
+// This breaks a lot of things. More development is needed
+bool ADS131M04::setWLENGTH(uint8_t bits)
+```
+
+29. Enable/disble channels [Etchezuri]
 ```C
 bool ADS131M04::setChannelEnable(uint8_t channel, uint16_t enable)
 ```
 
-25. Global chops (see datasheet) [Etchezuri]
+30. Global chops (see datasheet) [Etchezuri]
 ```C
 void ADS131M04::setGlobalChop(uint16_t global_chop)
 ```
