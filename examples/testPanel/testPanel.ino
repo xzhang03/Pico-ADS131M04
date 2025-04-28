@@ -11,6 +11,7 @@ ADS131M04 adc;
 adcOutput res;
 
 bool slowmode = false;
+bool fastmode = false;
 bool standby = false;
 
 volatile bool datagood = false;
@@ -36,7 +37,7 @@ void setup()
   adc.setInputChannelSelection(1, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
   adc.setInputChannelSelection(2, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
   adc.setInputChannelSelection(3, INPUT_CHANNEL_MUX_AIN0P_AIN0N);
-  adc.setOsr(OSR_1024);      // 32KSPS  only with 8MHZ clock
+  adc.setOsr(OSR_1024);      // 32KSPS only with 8MHZ clock
 
   pinMode(20, INPUT);
   attachInterrupt(digitalPinToInterrupt(20), dataRDY, FALLING);
@@ -53,6 +54,105 @@ void loop(){
 
     //based on the command character, we decide what to do
     switch (commandCharacter){
+      case 'Q': // Data streaming
+        {
+          Serial.println("Requesting streaming data");
+          unsigned long timeAnt = millis();
+          unsigned long cont = 0;
+          unsigned long gaptime = 0;
+          unsigned long t0 = 0;
+          bool trackgap = false;
+        
+          while (Serial.read() != 's'){
+            if (datagood){
+              if (trackgap){
+                gaptime += micros() - t0;
+              }
+              
+              res = adc.readCh0();
+//              digitalReadFast(2);
+//              digitalReadFast(3);
+//              digitalReadFast(4);
+//              digitalReadFast(5);
+              cont++;
+              datagood = false;
+
+              if (!trackgap){
+                trackgap = true;
+              }
+              t0 = micros();
+            }
+            if (millis() - timeAnt > 500){
+              Serial.print("SPS = ");
+              Serial.print(cont*2);
+              Serial.print(" Status = ");
+              Serial.print(res.status, BIN);
+        
+              Serial.print(" CH0 = ");
+              Serial.print(adc.convert(res.ch0), 5);
+
+              Serial.print(" Free CPU microsec/read = ");
+              Serial.println(gaptime/(cont-1));
+              
+              timeAnt = millis();
+              cont = 0;
+              trackgap = false;
+              gaptime = 0;
+            }
+          }
+          
+        }
+        break;
+
+      case 'E': // Data streaming
+        {
+          Serial.println("Requesting streaming data");
+          unsigned long timeAnt = millis();
+          unsigned long cont = 0;
+          unsigned long gaptime = 0;
+          unsigned long t0 = 0;
+          bool trackgap = false;
+        
+          while (Serial.read() != 's'){
+            if (datagood){
+              if (trackgap){
+                gaptime += micros() - t0;
+              }
+              
+              res = adc.readCh01();
+              cont++;
+              datagood = false;
+
+              if (!trackgap){
+                trackgap = true;
+              }
+              t0 = micros();
+            }
+            if (millis() - timeAnt > 500){
+              Serial.print("SPS = ");
+              Serial.print(cont*2);
+              Serial.print(" Status = ");
+              Serial.print(res.status, BIN);
+        
+              Serial.print(" CH0 = ");
+              Serial.print(adc.convert(res.ch0), 5);
+
+              Serial.print(" CH1 = ");
+              Serial.print(adc.convert(res.ch1), 5);
+
+              Serial.print(" Free CPU microsec/read = ");
+              Serial.println(gaptime/(cont-1));
+              
+              timeAnt = millis();
+              cont = 0;
+              trackgap = false;
+              gaptime = 0;
+            }
+          }
+          
+        }
+        break;
+        
       case 'D': // Data streaming
         {
           Serial.println("Requesting streaming data");
@@ -69,7 +169,46 @@ void loop(){
             if (millis() - timeAnt > 500)
             {
               Serial.print("SPS = ");
-              Serial.print(cont);
+              Serial.print(cont*2);
+              Serial.print(" Status = ");
+              Serial.print(res.status, BIN);
+        
+              Serial.print(" CH0 = ");
+              Serial.print(adc.convert(res.ch0), 5);
+        
+              Serial.print(" CH1 = ");
+              Serial.print(adc.convert(res.ch1), 5);
+              
+              Serial.print(" CH2 = ");
+              Serial.print(adc.convert(res.ch2), 5);
+              
+              Serial.print(" CH3 = ");
+              Serial.println(adc.convert(res.ch3), 5);
+              
+              timeAnt = millis();
+              cont = 0;
+            }
+          }
+          
+        }
+        break;
+
+      case 'N': // Data streaming no interrupt
+        {
+          Serial.println("Requesting streaming data no interrupt");
+          unsigned long timeAnt = millis();
+          unsigned long cont = 0;
+        
+          while (Serial.read() != 's'){
+            if (adc.isDataReady())
+            {
+              res = adc.readADC();
+              cont++;
+            }
+            if (millis() - timeAnt > 500)
+            {
+              Serial.print("SPS = ");
+              Serial.print(cont*2);
               Serial.print(" Status = ");
               Serial.print(res.status, BIN);
         
@@ -128,6 +267,18 @@ void loop(){
         }
         Serial.print("Slow mode: ");
         Serial.println(slowmode);
+        break;
+
+      case 'F':
+        fastmode = !fastmode;
+        if (fastmode){
+          adc.setOsr(OSR_128);
+        }
+        else{
+          adc.setOsr(OSR_1024);
+        }
+        Serial.print("Fast mode: ");
+        Serial.println(fastmode);
         break;
 
       case 'M':
@@ -223,8 +374,7 @@ void dataRDY(){
   datagood = true;
 }
 
-void printBits(int b)
-{
+void printBits(int b){
   for(int i = 15; i >= 0; i--)
   {
     Serial.print(bitRead(b,i));
@@ -236,11 +386,15 @@ void printBits(int b)
 void printmenu(void){
   Serial.println("Commands");
   Serial.println("M: Menu");
+  Serial.println("Q: Read 1 channel data + speed test ('s' = stop)");
+  Serial.println("E: Read 2 channel data + speed test ('s' = stop)");
   Serial.println("D: Read 4 channel data + speed test ('s' = stop)");
+  Serial.println("N: Read 4 channel data (no interrupt) + speed test ('s' = stop)");
   Serial.println("I: Set inputs to AI, 0, POS, NEG");
   Serial.println("R: Read register");
   Serial.println("T: Reset pin");
   Serial.println("P: SPI reset");
   Serial.println("W: Slow mode");
+  Serial.println("F: Fast mode");
   Serial.println("B: Standby");
 }
